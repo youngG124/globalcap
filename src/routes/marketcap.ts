@@ -10,8 +10,11 @@ router.get('/', async (req, res) => {
         const tickersPath = path.join(__dirname, '..', 'top_tickers.json');
         const tickers: string[] = JSON.parse(fs.readFileSync(tickersPath, 'utf-8'));
 
-        console.log('api called, tickers : ' + tickers);
-        res.json(tickers);
+        const results = await Promise.all(tickers.map(fetchCompanyInfo));
+        const validResults = results.filter(Boolean); // null 제거
+
+        const sorted = validResults.sort((a, b) => b!.marketCap - a!.marketCap);
+        res.json(sorted);
 
     } catch (error: any) {
         console.error('FMP API error : ', error.message);
